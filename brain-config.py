@@ -16,6 +16,16 @@ def write_item(brain, str):
     brain[item] = val
     print('{}: {} -> {}'.format(item, old, brain[item]))
 
+def read_all(b):
+    for it in brain.GLOBAL_FIELDS:
+        read_item(b, 'global.'+it)
+    for i in range(3):
+        for it in brain.SETUP_FIELDS:
+            read_item(b, 'setup{}.{}'.format(i+1, it))
+
+    # We've done enough.
+    sys.exit(0)
+
 def main():
     parser = argparse.ArgumentParser(description='Modify Brain FBL unit configuration',
                                      formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -45,6 +55,7 @@ setup1.TailGainA: 32767
 ''')
     parser.add_argument('device')
     parser.add_argument('--read', action='append', help='Read a configuration parameter. E.g. global.RxType')
+    parser.add_argument('--read-all', action='store_true')
     parser.add_argument('--write', action='append', help='Write a configuation parameter. Expects name=val pairs')
     try:
         args = parser.parse_args()
@@ -54,6 +65,9 @@ setup1.TailGainA: 32767
         sys.exit(1)
 
     b = brain.Brain(args.device)
+
+    if args.read_all:
+        read_all(b)
 
     if args.read:
         for parm in args.read:
