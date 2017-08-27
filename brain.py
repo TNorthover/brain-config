@@ -26,16 +26,22 @@ class Brain:
         if self.version() != b'BRAIN2 3.1.010':
             raise IOError('Incompatible Brain firmware found: {}, expect "BRAIN2 3.1.010"'.format(self.version()))
 
+    def quote(self, s):
+        s = s.replace(b'\xc3', b'\xc3\xc3')
+        s = s.replace(b'\x3c', b'\xc3\x3c')
+        s = s.replace(b'\x55', b'\xc3\x55')
+        return s
+
     def checksum(self, data):
         return sum(data) % 256
 
     def create_packet(self, cmd, payload):
-        pkt = Brain.PKT_HEAD
-        pkt += b'\x00' # Sender identifier is hex 0
+        pkt = b'\x00' # Sender identifier is hex 0
         pkt += bytes([cmd])
         pkt += payload
-        pkt += bytes([self.checksum(pkt[2:])])
-        pkt += Brain.PKT_TAIL
+        pkt += bytes([self.checksum(pkt)])
+        pkt = Brain.PKT_HEAD + self.quote(pkt) + Brain.PKT_TAIL
+
         return pkt
 
     def write_packet(self, cmd, payload=bytes([])):
@@ -43,9 +49,19 @@ class Brain:
 
     def read_packet(self):
         pkt = b''
+        escape = False
         while True:
             pkt += self.brain.read(1)
-            if pkt.endswith(Brain.PKT_TAIL):
+            if escape:
+                escape = False
+                continue
+            if pkt[-1] == 0xc3:
+                # Escape. Next character is not special. This affects 0x55, 0x3c
+                # and (I'm assuming) 0xc3 itself, which would otherwise signal
+                # the start/end of a packet, or an escape.
+                pkt = pkt[:-1]
+                escape = True
+            elif pkt.endswith(Brain.PKT_TAIL):
                 break
 
         if not pkt.startswith(Brain.PKT_HEAD):
@@ -121,4 +137,10 @@ class Brain:
 if __name__ == '__main__':
     import sys
     b = Brain(sys.argv[1])
-    print(b['global.GovDiv'])
+#    pkt = bytes([0x55, 0x55, 0x00, 0x04, 0xff, 0x30, 0xc3, 0x55, 0x1e, 0xa6, 0x3c])
+#    print('About to send: {}'.format(pkt))
+#    b.brain.write(pkt)
+#    print(b.read_packet())
+#    b.brain.write(bytes([0x55, 0x55, 0x00, 0x03, 0xff, 0x30, 0x32, 0x3c]))
+#    print(b.read_packet())
+#    print(GLOBAL_FIELDS[0x30])
