@@ -55,7 +55,7 @@ setup1.TailGainA: 32767
 ''')
     parser.add_argument('device')
     parser.add_argument('--read', action='append', help='Read a configuration parameter. E.g. global.RxType')
-    parser.add_argument('--read-all', action='store_true')
+    parser.add_argument('--read-all', action='store_true', help='Read all known configuration parameters')
     parser.add_argument('--write', action='append', help='Write a configuation parameter. Expects name=val pairs')
     try:
         args = parser.parse_args()

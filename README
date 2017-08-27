@@ -26,6 +26,12 @@ global.GovDiv: 42 -> 2100
 $ ./brain-config.py /dev/ttyUSB0 --read setup1.TailGainA
 setup1.TailGainA: 32767
 
+$ ./brain-config.py /dev/ttyUSB0 --read-all
+global.Version: 1
+[...]
+setup3.Info11: 0
+
+
 WARNING: This is a very early prototype by some crazy individual on the
 internet. There's obviously no guarantee it won't do horrible things to either
 the FBL unit itself or anything unfortunate enough to be attached to it (like a
